@@ -1,0 +1,5 @@
+{
+  "name": "Lively Chicken Farm",
+  "description": "An interactive chicken farm simulation with smart obstacle avoidance.",
+  "requestFramePermissions": []
+}
