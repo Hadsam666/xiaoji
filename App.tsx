@@ -132,7 +132,7 @@ const App: React.FC = () => {
     // --- Load Chicken Function ---
     const loadChicken = (src: string, startX: number, startY: number, name: string, scale: number) => {
         const img = new Image();
-        img.crossOrigin = "anonymous"; // Try to prevent CORS issues
+        // img.crossOrigin = "anonymous"; // Removed to fix loading issues
         img.src = src;
         img.onload = () => {
             const spriteW = Math.floor(img.width / COLS);
@@ -213,7 +213,7 @@ const App: React.FC = () => {
 
         // Initialize Feed Image
         const fImg = new Image();
-        fImg.crossOrigin = "anonymous";
+        // fImg.crossOrigin = "anonymous"; // Removed to fix loading issues
         fImg.src = FEED_SRC;
         feedImgRef.current = fImg;
 

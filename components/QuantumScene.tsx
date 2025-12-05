@@ -9,8 +9,20 @@ import { Float, MeshDistortMaterial, Sphere, Torus, Cylinder, Stars, Environment
 import * as THREE from 'three';
 
 // Manually extend JSX.IntrinsicElements to support R3F elements
-// This fixes errors where these elements are not recognized by the TS compiler in this environment
+// We declare in both global JSX namespace and React module to ensure compatibility
 declare global {
+  namespace JSX {
+    interface IntrinsicElements {
+      ambientLight: any;
+      pointLight: any;
+      spotLight: any;
+      meshStandardMaterial: any;
+      group: any;
+    }
+  }
+}
+
+declare module 'react' {
   namespace JSX {
     interface IntrinsicElements {
       ambientLight: any;
