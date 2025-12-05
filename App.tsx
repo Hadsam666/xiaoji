@@ -6,10 +6,11 @@
 import React, { useEffect, useRef } from 'react';
 
 // --- 配置与状态 ---
-const HEN_SRC = 'https://github.com/Hadsam666/1/blob/main/removed_bg_1764665516346.png?raw=true';
-const ROOSTER_SRC = 'https://github.com/Hadsam666/1/blob/main/removed_bg_1764666269021.png?raw=true';
-const CHICK_SRC = 'https://github.com/Hadsam666/1/blob/main/removed_bg_1764680064142.png?raw=true';
-const FEED_SRC = 'https://github.com/Hadsam666/1/blob/main/removed_bg_1764743525503.png?raw=true';
+// 使用 jsDelivr CDN 加速后的链接
+const HEN_SRC = 'https://cdn.jsdelivr.net/gh/Hadsam666/1@main/removed_bg_1764665516346.png';
+const ROOSTER_SRC = 'https://cdn.jsdelivr.net/gh/Hadsam666/1@main/removed_bg_1764666269021.png';
+const CHICK_SRC = 'https://cdn.jsdelivr.net/gh/Hadsam666/1@main/removed_bg_1764680064142.png';
+const FEED_SRC = 'https://cdn.jsdelivr.net/gh/Hadsam666/1@main/removed_bg_1764743525503.png';
 
 const COLS = 4;
 const ROWS = 4;
