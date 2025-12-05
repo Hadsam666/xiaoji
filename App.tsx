@@ -120,6 +120,7 @@ const App: React.FC = () => {
     const clickEffectRef = useRef({ x: 0, y: 0, radius: 0, maxRadius: 0, alpha: 0, active: false, color: '' });
     const feedImgRef = useRef<HTMLImageElement | null>(null);
     const requestRef = useRef<number>(0);
+    const initializedRef = useRef(false);
 
     // --- Helper to update status text ---
     const updateStatus = (text: string) => {
@@ -131,6 +132,7 @@ const App: React.FC = () => {
     // --- Load Chicken Function ---
     const loadChicken = (src: string, startX: number, startY: number, name: string, scale: number) => {
         const img = new Image();
+        img.crossOrigin = "anonymous"; // Try to prevent CORS issues
         img.src = src;
         img.onload = () => {
             const spriteW = Math.floor(img.width / COLS);
@@ -145,6 +147,7 @@ const App: React.FC = () => {
             }
         };
         img.onerror = () => {
+            console.error(`Failed to load image for ${name}: ${src}`);
             updateStatus(`⚠️ ${name} 图片加载失败`);
         };
     };
@@ -210,6 +213,7 @@ const App: React.FC = () => {
 
         // Initialize Feed Image
         const fImg = new Image();
+        fImg.crossOrigin = "anonymous";
         fImg.src = FEED_SRC;
         feedImgRef.current = fImg;
 
@@ -221,10 +225,14 @@ const App: React.FC = () => {
         window.addEventListener('resize', resizeCanvas);
         resizeCanvas();
 
-        // Initial Flock
-        loadChicken(HEN_SRC, canvas.width / 2 - 60, canvas.height / 2 - 30, '母鸡', 0.25);
-        loadChicken(ROOSTER_SRC, canvas.width / 2 + 60, canvas.height / 2 - 30, '公鸡', 0.25);
-        loadChicken(CHICK_SRC, canvas.width / 2, canvas.height / 2 + 50, '小鸡', 0.125);
+        // Prevent double initialization in StrictMode
+        if (!initializedRef.current) {
+            initializedRef.current = true;
+            // Initial Flock
+            loadChicken(HEN_SRC, canvas.width / 2 - 60, canvas.height / 2 - 30, '母鸡', 0.25);
+            loadChicken(ROOSTER_SRC, canvas.width / 2 + 60, canvas.height / 2 - 30, '公鸡', 0.25);
+            loadChicken(CHICK_SRC, canvas.width / 2, canvas.height / 2 + 50, '小鸡', 0.125);
+        }
 
         // --- Logic Functions ---
 
@@ -692,6 +700,7 @@ const App: React.FC = () => {
 
         const draw = () => {
             if (!ctx) return;
+            // Clear canvs
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
             const clickEffect = clickEffectRef.current;
@@ -707,11 +716,16 @@ const App: React.FC = () => {
                 ctx.restore();
             }
 
+            // Draw Loading Status on Canvas if needed
             if (loadedCountRef.current < 3) {
+                ctx.save();
                 ctx.fillStyle = "white";
                 ctx.textAlign = "center";
                 ctx.font = "20px sans-serif";
+                ctx.shadowColor = "black";
+                ctx.shadowBlur = 4;
                 ctx.fillText(`资源加载中 (${loadedCountRef.current}/3)...`, canvas.width/2, canvas.height/2);
+                ctx.restore();
             }
 
             feedsRef.current.forEach(f => {
@@ -765,14 +779,18 @@ const App: React.FC = () => {
                 ctx.save();
                 ctx.translate(chicken.pos.x, chicken.pos.y);
                 if (!chicken.facingRight) ctx.scale(-1, 1);
+                
+                // Draw shadow
+                ctx.fillStyle = "rgba(0,0,0,0.2)";
+                ctx.beginPath();
+                ctx.ellipse(0, dh/2 - 5, dw/3, dh/6, 0, 0, Math.PI*2);
+                ctx.fill();
 
                 ctx.drawImage(chicken.img, sx, sy, chicken.spriteW, chicken.spriteH, -dw/2, -dh/2, dw, dh);
                 ctx.restore();
             });
 
             if(loadedCountRef.current >= 3) {
-                // Update status text only occasionally if needed, or rely on requestAnimationFrame loop.
-                // Doing it every frame in JS is fine, in React DOM diffing it's heavy, but we are using refs to direct DOM update.
                 const counts = { '母鸡': 0, '公鸡': 0, '小鸡': 0 };
                 flockRef.current.forEach(c => {
                     const name = c.name as keyof typeof counts;
@@ -783,8 +801,12 @@ const App: React.FC = () => {
         };
 
         const loop = () => {
-            update();
-            draw();
+            try {
+                update();
+                draw();
+            } catch (e) {
+                console.error("Game loop error", e);
+            }
             requestRef.current = requestAnimationFrame(loop);
         };
 
@@ -882,6 +904,9 @@ const App: React.FC = () => {
             window.removeEventListener('resize', resizeCanvas);
             canvas.removeEventListener('mousedown', handleMouseDown);
             canvas.removeEventListener('dblclick', handleDblClick);
+            // We do NOT clear flockRef.current here because Hot Module Replacement or remounting should persist logic in this specific non-React game loop architecture if we want continuity, 
+            // BUT for correctness in strict mode, we might want to clear it. 
+            // However, since we use `initializedRef`, we prevent double-init.
         };
     }, []);
 
